@@ -55,6 +55,8 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+        /* Clase para el scroll suave */
+        html { scroll-behavior: smooth; }
     </style>
 </head>
 <body class="text-grisAntracita font-texto antialiased bg-fondoPagina overflow-x-hidden flex flex-col min-h-screen">
@@ -97,10 +99,14 @@
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         
         <!-- PANEL DE ADMINISTRACIÓN (SOLO VISIBLE PARA ADMIN) -->
+        <!-- ID 'admin-panel' usado para el scroll automático -->
         <div id="admin-panel" class="hidden mb-16 bg-white p-8 rounded-xl shadow-lg border-l-4 border-doradoSuave fade-in ring-2 ring-doradoSuave ring-offset-4">
             <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
                 <h2 class="font-subtitulo font-bold text-2xl text-azulOceano"><i class="fa-solid fa-gavel mr-2"></i>Panel de Moderación</h2>
-                <button onclick="logoutAdmin()" class="px-3 py-1 bg-red-100 text-red-600 rounded-md text-sm font-bold hover:bg-red-200 transition">Cerrar Sesión</button>
+                <div class="flex items-center gap-4">
+                    <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full animate-pulse">● Modo Admin Activo</span>
+                    <button onclick="logoutAdmin()" class="px-3 py-1 bg-red-100 text-red-600 rounded-md text-sm font-bold hover:bg-red-200 transition">Cerrar Sesión</button>
+                </div>
             </div>
             
             <p class="text-gray-600 mb-4">Aquí aparecen las entradas enviadas por la comunidad. Revísalas antes de hacerlas públicas.</p>
@@ -108,7 +114,7 @@
             <!-- Lista de Pendientes -->
             <div id="pending-grid" class="space-y-4">
                 <!-- Se inyectan aquí las entradas pendientes -->
-                <p class="text-center text-gray-400 italic py-4">No hay entradas pendientes de revisión.</p>
+                <p class="text-center text-gray-400 italic py-4">Cargando pendientes...</p>
             </div>
         </div>
 
@@ -128,7 +134,7 @@
             <form id="post-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-bold text-grisAntracita mb-1">Título de tu historia</label>
-                    <input type="text" id="post-title" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verdeEsperanza focus:border-transparent outline-none bg-gray-50" placeholder="Un título...">
+                    <input type="text" id="post-title" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verdeEsperanza focus:border-transparent outline-none bg-gray-50" placeholder="Un título breve e inspirador...">
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -200,8 +206,8 @@
                     <a href="index.html" class="hover:text-verdeEsperanza transition">Inicio</a>
                     <span class="text-gray-600">|</span>
                     <!-- Botón secreto para admin -->
-                    <button onclick="toggleAdminLogin()" class="hover:text-white text-gray-500 transition cursor-pointer text-xs flex items-center gap-1">
-                        <i class="fa-solid fa-lock"></i> Moderación
+                    <button onclick="toggleAdminLogin()" class="hover:text-white text-gray-500 transition cursor-pointer text-xs flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
+                        <i class="fa-solid fa-lock"></i> Moderación (Admin)
                     </button>
                 </div>
             </div>
@@ -386,31 +392,71 @@
             }
         };
 
-        window.toggleAdminLogin = () => {
+        // FUNCIÓN DE LOGIN SEGURA CON HASH
+        // -------------------------------
+        // Función auxiliar para Hash SHA-256
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        // Hash precalculado de "admin123"
+        const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
+
+        window.toggleAdminLogin = async () => {
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            
             if (isAdmin) {
+                // Si ya es admin, mostrar y scroll
                 adminPanel.classList.remove('hidden');
-                adminPanel.scrollIntoView({ behavior: 'smooth' });
+                adminPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else {
+                // Si no, pedir contraseña
                 const password = prompt("Contraseña de Moderador:");
-                if (password === "admin123") { 
-                    localStorage.setItem('isAdmin', 'true');
-                    location.reload(); 
-                } else if (password !== null) {
-                    alert("Contraseña incorrecta");
+                
+                if (password !== null) {
+                    const hashInput = await sha256(password);
+                    
+                    if (hashInput === ADMIN_HASH) { 
+                        localStorage.setItem('isAdmin', 'true');
+                        alert("¡Bienvenida Administradora!");
+                        
+                        // Recargar la página con el hash en la URL para que el script de carga detecte el scroll
+                        // Añadimos un timestamp para forzar el refresco real si fuera necesario
+                        window.location.href = window.location.pathname + "#admin-panel";
+                        window.location.reload();
+                    } else {
+                        alert("Contraseña incorrecta. Acceso denegado.");
+                    }
                 }
             }
         };
 
         window.logoutAdmin = () => {
             localStorage.removeItem('isAdmin');
+            // Limpiar URL
+            history.pushState("", document.title, window.location.pathname + window.location.search);
             location.reload();
         };
 
-        // Mostrar panel si ya está logueado
-        if (localStorage.getItem('isAdmin') === 'true') {
-            adminPanel.classList.remove('hidden');
-        }
+        // AL CARGAR LA PÁGINA
+        document.addEventListener('DOMContentLoaded', () => {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            if (isAdmin) {
+                // Mostrar panel
+                document.getElementById('admin-panel').classList.remove('hidden');
+                
+                // Si la URL tiene el hash, hacer scroll
+                if(window.location.hash === '#admin-panel') {
+                    setTimeout(() => {
+                        document.getElementById('admin-panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 800);
+                }
+            }
+        });
     </script>
 </body>
 </html>
