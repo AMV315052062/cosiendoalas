@@ -70,9 +70,9 @@
     <div id="toast-container" class="fixed top-24 right-5 z-[100] flex flex-col gap-2"></div>
 
     <!-- MODAL DE LOGIN (Oculto por defecto) -->
-    <div id="login-modal" class="fixed inset-0 bg-black/50 z-[90] hidden flex items-center justify-center fade-in backdrop-blur-sm">
+    <div id="login-modal" class="fixed inset-0 bg-black/50 z-[999] hidden flex items-center justify-center fade-in backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 relative border-t-4 border-azulOceano">
-            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
+            <button id="close-login-btn" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
                 <i class="fa-solid fa-xmark text-2xl"></i>
             </button>
             <h3 class="font-subtitulo font-bold text-2xl text-azulOceano mb-2 text-center">Acceso Moderación</h3>
@@ -90,12 +90,12 @@
     </div>
 
     <!-- MODAL DE CONFIRMACIÓN (Oculto por defecto) -->
-    <div id="confirm-modal" class="fixed inset-0 bg-black/50 z-[90] hidden flex items-center justify-center fade-in backdrop-blur-sm">
+    <div id="confirm-modal" class="fixed inset-0 bg-black/50 z-[999] hidden flex items-center justify-center fade-in backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 relative border-t-4 border-red-500">
             <h3 class="font-subtitulo font-bold text-xl text-grisAntracita mb-4">¿Estás seguro?</h3>
             <p id="confirm-message" class="text-gray-600 mb-6">Esta acción no se puede deshacer.</p>
             <div class="flex justify-end gap-3">
-                <button onclick="closeConfirmModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition">Cancelar</button>
+                <button id="cancel-confirm-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition">Cancelar</button>
                 <button id="confirm-btn-action" class="px-4 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition shadow-lg">Confirmar</button>
             </div>
         </div>
@@ -139,12 +139,12 @@
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         
         <!-- PANEL DE ADMINISTRACIÓN (SOLO VISIBLE PARA ADMIN) -->
-        <div id="admin-panel" class="hidden mb-16 bg-white p-8 rounded-xl shadow-lg border-l-4 border-doradoSuave fade-in ring-2 ring-doradoSuave ring-offset-4">
+        <div id="admin-panel" class="hidden mb-16 bg-white p-8 rounded-xl shadow-lg border-l-4 border-doradoSuave fade-in ring-2 ring-doradoSuave ring-offset-4 scroll-mt-32">
             <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
                 <h2 class="font-subtitulo font-bold text-2xl text-azulOceano"><i class="fa-solid fa-gavel mr-2"></i>Panel de Moderación</h2>
                 <div class="flex items-center gap-4">
                     <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full animate-pulse">● Modo Admin Activo</span>
-                    <button onclick="logoutAdmin()" class="px-3 py-1 bg-red-100 text-red-600 rounded-md text-sm font-bold hover:bg-red-200 transition">Cerrar Sesión</button>
+                    <button id="logout-btn" class="px-3 py-1 bg-red-100 text-red-600 rounded-md text-sm font-bold hover:bg-red-200 transition">Cerrar Sesión</button>
                 </div>
             </div>
             
@@ -243,8 +243,8 @@
                 <div class="text-sm text-lavandaSuave flex gap-4 items-center">
                     <a href="index.html" class="hover:text-verdeEsperanza transition">Inicio</a>
                     <span class="text-gray-600">|</span>
-                    <!-- Botón secreto para admin -->
-                    <button onclick="openLoginModal()" class="hover:text-white text-gray-500 transition cursor-pointer text-xs flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
+                    <!-- Botón secreto para admin con ID -->
+                    <button id="moderation-btn" class="hover:text-white text-gray-500 transition cursor-pointer text-xs flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
                         <i class="fa-solid fa-lock"></i> Moderación (Admin)
                     </button>
                 </div>
@@ -258,7 +258,7 @@
     <!-- Lógica de Firebase y Blog -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, onSnapshot, deleteDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
@@ -266,8 +266,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        signInAnonymously(auth).catch(console.error);
 
         const postsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'blog_posts');
 
@@ -281,9 +279,15 @@
         const loginModal = document.getElementById('login-modal');
         const confirmModal = document.getElementById('confirm-modal');
         const toastContainer = document.getElementById('toast-container');
+        
+        // Botones UI
+        const moderationBtn = document.getElementById('moderation-btn');
+        const closeLoginBtn = document.getElementById('close-login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const cancelConfirmBtn = document.getElementById('cancel-confirm-btn');
 
         // TOAST NOTIFICATION SYSTEM
-        window.showToast = (message, type = 'success') => {
+        const showToast = (message, type = 'success') => {
             const toast = document.createElement('div');
             const bgClass = type === 'success' ? 'bg-verdeEsperanza' : 'bg-red-500';
             const icon = type === 'success' ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-solid fa-circle-exclamation"></i>';
@@ -293,54 +297,73 @@
             
             toastContainer.appendChild(toast);
             
-            // Animación Entrada
             requestAnimationFrame(() => {
                 toast.classList.add('toast-enter-active');
                 toast.classList.remove('toast-enter');
             });
 
-            // Animación Salida
             setTimeout(() => {
                 toast.classList.add('toast-exit-active');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         };
 
-        // ESCUCHAR POSTS EN TIEMPO REAL
-        const q = query(postsCollectionRef);
+        // INICIALIZACIÓN DE AUTH Y LISTENERS
+        const initBlog = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                // Solo iniciamos el listener DESPUÉS de autenticar
+                setupBlogListener();
+            } catch (error) {
+                console.error("Error de autenticación:", error);
+                loadingIndicator.innerHTML = '<p class="text-red-500">Error de conexión. Intente recargar.</p>';
+            }
+        };
 
-        onSnapshot(q, (snapshot) => {
-            loadingIndicator.style.display = 'none';
-            blogGrid.innerHTML = '';
-            pendingGrid.innerHTML = '';
-            
-            const allPosts = [];
-            snapshot.forEach(doc => {
-                allPosts.push({ id: doc.id, ...doc.data() });
+        const setupBlogListener = () => {
+            const q = query(postsCollectionRef);
+
+            onSnapshot(q, (snapshot) => {
+                loadingIndicator.style.display = 'none';
+                blogGrid.innerHTML = '';
+                pendingGrid.innerHTML = '';
+                
+                const allPosts = [];
+                snapshot.forEach(doc => {
+                    allPosts.push({ id: doc.id, ...doc.data() });
+                });
+
+                allPosts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                const approvedPosts = allPosts.filter(p => p.status === 'approved');
+                const pendingPosts = allPosts.filter(p => p.status === 'pending');
+
+                // Render Públicos
+                if (approvedPosts.length === 0) {
+                    noPostsMessage.classList.remove('hidden');
+                } else {
+                    noPostsMessage.classList.add('hidden');
+                    approvedPosts.forEach(post => renderPublicPost(post));
+                }
+
+                // Render Pendientes
+                if (pendingPosts.length > 0) {
+                    pendingPosts.forEach(post => renderPendingPost(post));
+                } else {
+                    pendingGrid.innerHTML = '<p class="text-center text-gray-400 italic py-4 bg-gray-50 rounded-lg">No hay entradas pendientes de revisión.</p>';
+                }
+            }, (error) => {
+                console.error("Error en snapshot:", error);
+                // Si hay error de permisos, probablemente la auth falló o caducó
             });
+        };
 
-            allPosts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-
-            const approvedPosts = allPosts.filter(p => p.status === 'approved');
-            const pendingPosts = allPosts.filter(p => p.status === 'pending');
-
-            // Render Públicos
-            if (approvedPosts.length === 0) {
-                noPostsMessage.classList.remove('hidden');
-            } else {
-                noPostsMessage.classList.add('hidden');
-                approvedPosts.forEach(post => renderPublicPost(post));
-            }
-
-            // Render Pendientes
-            if (pendingPosts.length > 0) {
-                pendingPosts.forEach(post => renderPendingPost(post));
-            } else {
-                pendingGrid.innerHTML = '<p class="text-center text-gray-400 italic py-4 bg-gray-50 rounded-lg">No hay entradas pendientes de revisión.</p>';
-            }
-        });
-
-        // RENDERIZAR
+        // FUNCIONES DE RENDERIZADO
         function renderPublicPost(post) {
             const date = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Reciente';
             let catColor = 'bg-azulOceano';
@@ -348,18 +371,21 @@
             if(post.category === 'Reflexión') catColor = 'bg-verdeEsperanza';
             if(post.category === 'Eventos') catColor = 'bg-doradoSuave text-grisAntracita';
 
+            // Comprobamos admin de forma segura
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            const deleteBtn = isAdmin ? `
-                <button onclick="window.confirmAction('delete', '${post.id}')" class="absolute top-2 right-2 bg-red-500/80 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600 transition z-10" title="Borrar entrada">
-                    <i class="fa-solid fa-trash text-xs"></i>
-                </button>
-            ` : '';
-
+            
             const card = document.createElement('div');
             card.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col fade-in h-full relative';
+            
+            let deleteBtnHtml = '';
+            if (isAdmin) {
+                // Creamos un ID único para el botón de borrar de este post
+                deleteBtnHtml = `<button id="del-pub-${post.id}" class="absolute top-2 right-2 bg-red-500/80 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600 transition z-10" title="Borrar entrada"><i class="fa-solid fa-trash text-xs"></i></button>`;
+            }
+
             card.innerHTML = `
                 <div class="relative">
-                    ${deleteBtn}
+                    ${deleteBtnHtml}
                     <div class="h-3 bg-gradient-to-r from-azulOceano to-verdeEsperanza"></div>
                 </div>
                 <div class="p-6 flex-grow flex flex-col">
@@ -376,6 +402,11 @@
                 </div>
             `;
             blogGrid.appendChild(card);
+
+            // Agregar listener al botón dinámico si existe
+            if(isAdmin) {
+                document.getElementById(`del-pub-${post.id}`).addEventListener('click', () => confirmAction('delete', post.id));
+            }
         }
 
         function renderPendingPost(post) {
@@ -392,18 +423,24 @@
                     <p class="text-xs text-azulOceano mt-1">Por: ${post.author || 'Anónimo'}</p>
                 </div>
                 <div class="flex gap-2 w-full sm:w-auto">
-                    <button onclick="window.approvePost('${post.id}')" class="flex-1 sm:flex-none px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition text-sm font-bold">
+                    <button id="app-${post.id}" class="flex-1 sm:flex-none px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition text-sm font-bold">
                         <i class="fa-solid fa-check mr-1"></i> Aprobar
                     </button>
-                    <button onclick="window.confirmAction('delete', '${post.id}')" class="flex-1 sm:flex-none px-4 py-2 bg-red-100 text-red-500 rounded hover:bg-red-200 transition text-sm font-bold">
+                    <button id="rej-${post.id}" class="flex-1 sm:flex-none px-4 py-2 bg-red-100 text-red-500 rounded hover:bg-red-200 transition text-sm font-bold">
                         <i class="fa-solid fa-xmark mr-1"></i> Rechazar
                     </button>
                 </div>
             `;
             pendingGrid.appendChild(card);
+
+            // Agregar listeners dinámicos
+            document.getElementById(`app-${post.id}`).addEventListener('click', () => approvePost(post.id));
+            document.getElementById(`rej-${post.id}`).addEventListener('click', () => confirmAction('delete', post.id));
         }
 
-        // ENVIAR POST
+        // --- SISTEMA DE GESTIÓN Y EVENTOS (Sin usar 'window.' global para mayor seguridad) ---
+
+        // ENVIAR
         postForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = postForm.querySelector('button[type="submit"]');
@@ -422,57 +459,59 @@
                 });
                 
                 postForm.reset();
-                window.showToast('Entrada enviada a revisión exitosamente.');
+                showToast('Entrada enviada a revisión exitosamente.');
             } catch (error) {
                 console.error("Error:", error);
-                window.showToast('Error al enviar la entrada.', 'error');
+                showToast('Error al enviar la entrada.', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalHTML;
             }
         });
 
-        // ACTIONS
-        window.approvePost = async (id) => {
+        // APROBAR
+        const approvePost = async (id) => {
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'blog_posts', id);
                 await updateDoc(docRef, { status: 'approved' });
-                window.showToast('Entrada aprobada y publicada.');
+                showToast('Entrada aprobada y publicada.');
             } catch (e) {
-                window.showToast('Error: ' + e.message, 'error');
+                showToast('Error: ' + e.message, 'error');
             }
         };
 
-        // CONFIRMATION MODAL LOGIC
+        // CONFIRMACIÓN Y BORRADO
         let actionToConfirm = null;
         let idToConfirm = null;
 
-        window.confirmAction = (action, id) => {
+        const confirmAction = (action, id) => {
             actionToConfirm = action;
             idToConfirm = id;
             confirmModal.classList.remove('hidden');
         };
 
-        window.closeConfirmModal = () => {
+        const closeConfirmModal = () => {
             confirmModal.classList.add('hidden');
             actionToConfirm = null;
             idToConfirm = null;
         };
 
+        cancelConfirmBtn.addEventListener('click', closeConfirmModal);
+
         document.getElementById('confirm-btn-action').addEventListener('click', async () => {
             if (actionToConfirm === 'delete' && idToConfirm) {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'blog_posts', idToConfirm));
-                    window.showToast('Entrada eliminada.');
+                    showToast('Entrada eliminada.');
                 } catch (e) {
-                    window.showToast('Error al eliminar.', 'error');
+                    showToast('Error al eliminar.', 'error');
                 }
             }
             closeConfirmModal();
         });
 
-        // LOGIN SYSTEM (MODAL + HASH)
-        const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; // admin123
+        // LOGIN SYSTEM
+        const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; 
 
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
@@ -481,20 +520,23 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        window.openLoginModal = () => {
+        const openLoginModal = () => {
             if (localStorage.getItem('isAdmin') === 'true') {
                 adminPanel.classList.remove('hidden');
-                adminPanel.scrollIntoView({ behavior: 'smooth' });
+                adminPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else {
                 loginModal.classList.remove('hidden');
                 document.getElementById('admin-password').focus();
             }
         };
 
-        window.closeLoginModal = () => {
+        const closeLoginModal = () => {
             loginModal.classList.add('hidden');
             document.getElementById('admin-password').value = '';
         };
+
+        moderationBtn.addEventListener('click', openLoginModal);
+        closeLoginBtn.addEventListener('click', closeLoginModal);
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -503,25 +545,32 @@
 
             if (hashInput === ADMIN_HASH) {
                 localStorage.setItem('isAdmin', 'true');
-                window.showToast('¡Bienvenida Administradora!');
+                showToast('¡Bienvenida Administradora!');
                 closeLoginModal();
                 
                 adminPanel.classList.remove('hidden');
                 adminPanel.scrollIntoView({ behavior: 'smooth' });
+                // Recargar posts para mostrar botones de admin
+                // Disparamos una relectura "falsa" o simplemente esperamos al siguiente snapshot update
+                // Para simplificar, recargamos la pagina suavemente
+                setTimeout(() => location.reload(), 1000); 
             } else {
-                window.showToast('Contraseña incorrecta.', 'error');
+                showToast('Contraseña incorrecta.', 'error');
             }
         });
 
-        window.logoutAdmin = () => {
+        logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('isAdmin');
             location.reload();
-        };
+        });
 
         // CHECK LOGIN ON LOAD
         if (localStorage.getItem('isAdmin') === 'true') {
             adminPanel.classList.remove('hidden');
         }
+
+        // INICIAR
+        initBlog();
     </script>
 </body>
 </html>
