@@ -55,11 +55,51 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        /* Clase para el scroll suave */
         html { scroll-behavior: smooth; }
+        
+        /* Animación para el Toast */
+        .toast-enter { transform: translateX(100%); opacity: 0; }
+        .toast-enter-active { transform: translateX(0); opacity: 1; transition: all 0.3s ease-out; }
+        .toast-exit { transform: translateX(0); opacity: 1; }
+        .toast-exit-active { transform: translateX(100%); opacity: 0; transition: all 0.3s ease-in; }
     </style>
 </head>
 <body class="text-grisAntracita font-texto antialiased bg-fondoPagina overflow-x-hidden flex flex-col min-h-screen">
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed top-24 right-5 z-[100] flex flex-col gap-2"></div>
+
+    <!-- MODAL DE LOGIN (Oculto por defecto) -->
+    <div id="login-modal" class="fixed inset-0 bg-black/50 z-[90] hidden flex items-center justify-center fade-in backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 relative border-t-4 border-azulOceano">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
+                <i class="fa-solid fa-xmark text-2xl"></i>
+            </button>
+            <h3 class="font-subtitulo font-bold text-2xl text-azulOceano mb-2 text-center">Acceso Moderación</h3>
+            <p class="text-gray-500 text-sm text-center mb-6">Ingresa la contraseña para gestionar el blog.</p>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <input type="password" id="admin-password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-azulOceano outline-none transition" placeholder="Contraseña..." required>
+                </div>
+                <button type="submit" class="w-full py-3 bg-azulOceano text-white font-bold rounded-lg hover:bg-moradoMedio transition shadow-lg">
+                    Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN (Oculto por defecto) -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/50 z-[90] hidden flex items-center justify-center fade-in backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 relative border-t-4 border-red-500">
+            <h3 class="font-subtitulo font-bold text-xl text-grisAntracita mb-4">¿Estás seguro?</h3>
+            <p id="confirm-message" class="text-gray-600 mb-6">Esta acción no se puede deshacer.</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeConfirmModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition">Cancelar</button>
+                <button id="confirm-btn-action" class="px-4 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition shadow-lg">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Navbar -->
     <nav class="bg-white shadow-md fixed w-full z-50 transition-all duration-300 h-20">
@@ -99,7 +139,6 @@
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         
         <!-- PANEL DE ADMINISTRACIÓN (SOLO VISIBLE PARA ADMIN) -->
-        <!-- ID 'admin-panel' usado para el scroll automático -->
         <div id="admin-panel" class="hidden mb-16 bg-white p-8 rounded-xl shadow-lg border-l-4 border-doradoSuave fade-in ring-2 ring-doradoSuave ring-offset-4">
             <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
                 <h2 class="font-subtitulo font-bold text-2xl text-azulOceano"><i class="fa-solid fa-gavel mr-2"></i>Panel de Moderación</h2>
@@ -113,7 +152,6 @@
 
             <!-- Lista de Pendientes -->
             <div id="pending-grid" class="space-y-4">
-                <!-- Se inyectan aquí las entradas pendientes -->
                 <p class="text-center text-gray-400 italic py-4">Cargando pendientes...</p>
             </div>
         </div>
@@ -134,7 +172,7 @@
             <form id="post-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-bold text-grisAntracita mb-1">Título de tu historia</label>
-                    <input type="text" id="post-title" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verdeEsperanza focus:border-transparent outline-none bg-gray-50" placeholder="Un título breve e inspirador...">
+                    <input type="text" id="post-title" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verdeEsperanza focus:border-transparent outline-none bg-gray-50" placeholder="Un título...">
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -206,7 +244,7 @@
                     <a href="index.html" class="hover:text-verdeEsperanza transition">Inicio</a>
                     <span class="text-gray-600">|</span>
                     <!-- Botón secreto para admin -->
-                    <button onclick="toggleAdminLogin()" class="hover:text-white text-gray-500 transition cursor-pointer text-xs flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
+                    <button onclick="openLoginModal()" class="hover:text-white text-gray-500 transition cursor-pointer text-xs flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
                         <i class="fa-solid fa-lock"></i> Moderación (Admin)
                     </button>
                 </div>
@@ -240,8 +278,35 @@
         const loadingIndicator = document.getElementById('loading-indicator');
         const noPostsMessage = document.getElementById('no-posts-message');
         const postForm = document.getElementById('post-form');
+        const loginModal = document.getElementById('login-modal');
+        const confirmModal = document.getElementById('confirm-modal');
+        const toastContainer = document.getElementById('toast-container');
 
-        // ESCUCHAR POSTS EN TIEMPO REAL (TODOS)
+        // TOAST NOTIFICATION SYSTEM
+        window.showToast = (message, type = 'success') => {
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-verdeEsperanza' : 'bg-red-500';
+            const icon = type === 'success' ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-solid fa-circle-exclamation"></i>';
+            
+            toast.className = `${bgClass} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] toast-enter`;
+            toast.innerHTML = `${icon} <span class="font-bold text-sm">${message}</span>`;
+            
+            toastContainer.appendChild(toast);
+            
+            // Animación Entrada
+            requestAnimationFrame(() => {
+                toast.classList.add('toast-enter-active');
+                toast.classList.remove('toast-enter');
+            });
+
+            // Animación Salida
+            setTimeout(() => {
+                toast.classList.add('toast-exit-active');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        // ESCUCHAR POSTS EN TIEMPO REAL
         const q = query(postsCollectionRef);
 
         onSnapshot(q, (snapshot) => {
@@ -254,14 +319,12 @@
                 allPosts.push({ id: doc.id, ...doc.data() });
             });
 
-            // Ordenar por fecha descendente
             allPosts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
-            // Filtrar posts
             const approvedPosts = allPosts.filter(p => p.status === 'approved');
             const pendingPosts = allPosts.filter(p => p.status === 'pending');
 
-            // Renderizar Públicos
+            // Render Públicos
             if (approvedPosts.length === 0) {
                 noPostsMessage.classList.remove('hidden');
             } else {
@@ -269,7 +332,7 @@
                 approvedPosts.forEach(post => renderPublicPost(post));
             }
 
-            // Renderizar Pendientes (Solo visible si el panel admin está abierto)
+            // Render Pendientes
             if (pendingPosts.length > 0) {
                 pendingPosts.forEach(post => renderPendingPost(post));
             } else {
@@ -277,25 +340,23 @@
             }
         });
 
-        // RENDERIZAR POST PÚBLICO
+        // RENDERIZAR
         function renderPublicPost(post) {
             const date = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Reciente';
-            
             let catColor = 'bg-azulOceano';
             if(post.category === 'Legal') catColor = 'bg-grisAntracita';
             if(post.category === 'Reflexión') catColor = 'bg-verdeEsperanza';
             if(post.category === 'Eventos') catColor = 'bg-doradoSuave text-grisAntracita';
 
-            // Si es admin, mostrar botón de borrar aunque sea público
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
             const deleteBtn = isAdmin ? `
-                <button onclick="window.deletePost('${post.id}')" class="absolute top-2 right-2 bg-red-500/80 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600 transition z-10" title="Borrar entrada">
+                <button onclick="window.confirmAction('delete', '${post.id}')" class="absolute top-2 right-2 bg-red-500/80 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600 transition z-10" title="Borrar entrada">
                     <i class="fa-solid fa-trash text-xs"></i>
                 </button>
             ` : '';
 
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col fade-in h-full';
+            card.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col fade-in h-full relative';
             card.innerHTML = `
                 <div class="relative">
                     ${deleteBtn}
@@ -317,7 +378,6 @@
             blogGrid.appendChild(card);
         }
 
-        // RENDERIZAR POST PENDIENTE (ADMIN)
         function renderPendingPost(post) {
             const card = document.createElement('div');
             card.className = 'bg-white p-4 rounded-lg border-l-4 border-orange-400 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 fade-in';
@@ -335,7 +395,7 @@
                     <button onclick="window.approvePost('${post.id}')" class="flex-1 sm:flex-none px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition text-sm font-bold">
                         <i class="fa-solid fa-check mr-1"></i> Aprobar
                     </button>
-                    <button onclick="window.deletePost('${post.id}')" class="flex-1 sm:flex-none px-4 py-2 bg-red-100 text-red-500 rounded hover:bg-red-200 transition text-sm font-bold">
+                    <button onclick="window.confirmAction('delete', '${post.id}')" class="flex-1 sm:flex-none px-4 py-2 bg-red-100 text-red-500 rounded hover:bg-red-200 transition text-sm font-bold">
                         <i class="fa-solid fa-xmark mr-1"></i> Rechazar
                     </button>
                 </div>
@@ -343,7 +403,7 @@
             pendingGrid.appendChild(card);
         }
 
-        // ENVIAR POST (SIEMPRE PENDIENTE)
+        // ENVIAR POST
         postForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = postForm.querySelector('button[type="submit"]');
@@ -357,106 +417,111 @@
                     author: document.getElementById('post-author').value,
                     category: document.getElementById('post-category').value,
                     content: document.getElementById('post-content').value,
-                    status: 'pending', // <--- CLAVE: Se guarda como pendiente
+                    status: 'pending',
                     createdAt: serverTimestamp()
                 });
                 
                 postForm.reset();
-                alert('¡Gracias! Tu entrada ha sido enviada a revisión. Un moderador la publicará pronto.');
+                window.showToast('Entrada enviada a revisión exitosamente.');
             } catch (error) {
                 console.error("Error:", error);
-                alert('Error al enviar. Intenta de nuevo.');
+                window.showToast('Error al enviar la entrada.', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalHTML;
             }
         });
 
-        // FUNCIONES ADMIN GLOBALES
+        // ACTIONS
         window.approvePost = async (id) => {
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'blog_posts', id);
                 await updateDoc(docRef, { status: 'approved' });
+                window.showToast('Entrada aprobada y publicada.');
             } catch (e) {
-                alert('Error al aprobar: ' + e.message);
+                window.showToast('Error: ' + e.message, 'error');
             }
         };
 
-        window.deletePost = async (id) => {
-            if(confirm('¿Confirmas que deseas eliminar esta entrada?')) {
+        // CONFIRMATION MODAL LOGIC
+        let actionToConfirm = null;
+        let idToConfirm = null;
+
+        window.confirmAction = (action, id) => {
+            actionToConfirm = action;
+            idToConfirm = id;
+            confirmModal.classList.remove('hidden');
+        };
+
+        window.closeConfirmModal = () => {
+            confirmModal.classList.add('hidden');
+            actionToConfirm = null;
+            idToConfirm = null;
+        };
+
+        document.getElementById('confirm-btn-action').addEventListener('click', async () => {
+            if (actionToConfirm === 'delete' && idToConfirm) {
                 try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'blog_posts', id));
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'blog_posts', idToConfirm));
+                    window.showToast('Entrada eliminada.');
                 } catch (e) {
-                    alert('Error al eliminar: ' + e.message);
+                    window.showToast('Error al eliminar.', 'error');
                 }
             }
-        };
+            closeConfirmModal();
+        });
 
-        // FUNCIÓN DE LOGIN SEGURA CON HASH
-        // -------------------------------
-        // Función auxiliar para Hash SHA-256
+        // LOGIN SYSTEM (MODAL + HASH)
+        const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; // admin123
+
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            return hashHex;
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        // Hash precalculado de "admin123"
-        const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
-
-        window.toggleAdminLogin = async () => {
-            const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            
-            if (isAdmin) {
-                // Si ya es admin, mostrar y scroll
+        window.openLoginModal = () => {
+            if (localStorage.getItem('isAdmin') === 'true') {
                 adminPanel.classList.remove('hidden');
-                adminPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                adminPanel.scrollIntoView({ behavior: 'smooth' });
             } else {
-                // Si no, pedir contraseña
-                const password = prompt("Contraseña de Moderador:");
-                
-                if (password !== null) {
-                    const hashInput = await sha256(password);
-                    
-                    if (hashInput === ADMIN_HASH) { 
-                        localStorage.setItem('isAdmin', 'true');
-                        alert("¡Bienvenida Administradora!");
-                        
-                        // Recargar la página con el hash en la URL para que el script de carga detecte el scroll
-                        // Añadimos un timestamp para forzar el refresco real si fuera necesario
-                        window.location.href = window.location.pathname + "#admin-panel";
-                        window.location.reload();
-                    } else {
-                        alert("Contraseña incorrecta. Acceso denegado.");
-                    }
-                }
+                loginModal.classList.remove('hidden');
+                document.getElementById('admin-password').focus();
             }
         };
+
+        window.closeLoginModal = () => {
+            loginModal.classList.add('hidden');
+            document.getElementById('admin-password').value = '';
+        };
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('admin-password').value;
+            const hashInput = await sha256(password);
+
+            if (hashInput === ADMIN_HASH) {
+                localStorage.setItem('isAdmin', 'true');
+                window.showToast('¡Bienvenida Administradora!');
+                closeLoginModal();
+                
+                adminPanel.classList.remove('hidden');
+                adminPanel.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                window.showToast('Contraseña incorrecta.', 'error');
+            }
+        });
 
         window.logoutAdmin = () => {
             localStorage.removeItem('isAdmin');
-            // Limpiar URL
-            history.pushState("", document.title, window.location.pathname + window.location.search);
             location.reload();
         };
 
-        // AL CARGAR LA PÁGINA
-        document.addEventListener('DOMContentLoaded', () => {
-            const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            if (isAdmin) {
-                // Mostrar panel
-                document.getElementById('admin-panel').classList.remove('hidden');
-                
-                // Si la URL tiene el hash, hacer scroll
-                if(window.location.hash === '#admin-panel') {
-                    setTimeout(() => {
-                        document.getElementById('admin-panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 800);
-                }
-            }
-        });
+        // CHECK LOGIN ON LOAD
+        if (localStorage.getItem('isAdmin') === 'true') {
+            adminPanel.classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
