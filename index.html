@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosiendo Alas A.C. | Reparamos heridas, reconstruimos vuelos</title>
+    
+    <!-- Fuentes Google: Playfair Display, Montserrat, Source Sans Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome para Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Configuración de Colores Personalizados en Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        azulOceano: '#653a82',     
+                        verdeEsperanza: '#42c3d9', 
+                        doradoSuave: '#fcc352',    
+                        grisAntracita: '#2b1045',  
+                        moradoMedio: '#8e62b1',
+                        azulCielo: '#53a0cc',
+                        turquesaClaro: '#5dcad4',
+                        lavandaSuave: '#afb0de',
+                        fondoPagina: '#f8f6fb', 
+                    },
+                    fontFamily: {
+                        titulo1: ['Playfair Display', 'serif'],
+                        subtitulo: ['Montserrat', 'sans-serif'],
+                        texto: ['Source Sans Pro', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .stitch-border { border: 2px dashed #fcc352; }
+        .stitch-line {
+            height: 2px;
+            background-image: linear-gradient(to right, #fcc352 50%, transparent 50%);
+            background-size: 20px 100%;
+        }
+        .hero-gradient { background: linear-gradient(135deg, #2b1045 0%, #653a82 50%, #42c3d9 100%); }
+        .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(101, 58, 130, 0.15); }
+        html { scroll-behavior: smooth; }
+        
+        /* ELIMINADO: Estilos CSS manuales para #side-menu que causaban el conflicto */
+        /* Ahora el menú se controla 100% con clases de Tailwind */
+
+        /* Nueva clase para el círculo irregular (Blob) */
+        .blob-shape {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation: morph 8s ease-in-out infinite;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.5s ease;
+        }
+
+        @keyframes morph {
+            0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+            100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+        }
+
+        /* Clases para armonización JS del Navbar */
+        .nav-compact {
+            height: 4rem !important; /* 64px */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+        }
+        .logo-compact {
+            height: 2.5rem !important; /* 40px */
+            width: 2.5rem !important;
+        }
+    </style>
+</head>
+<body class="text-grisAntracita font-texto antialiased bg-fondoPagina overflow-x-hidden">
+
+    <!-- Navbar -->
+    <nav id="main-navbar" class="bg-white shadow-md fixed w-full z-50 transition-all duration-300 h-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+            <div class="flex justify-between h-full items-center">
+                
+                <!-- Logo (Izquierda) -->
+                <div class="flex-shrink-0 flex items-center gap-3">
+                    <img id="nav-logo" class="h-12 w-12 object-contain transition-all duration-300" src="home.svg" alt="Logo Pequeño" onerror="this.src='https://placehold.co/100x100?text=CA'; this.style.borderRadius='50%'">
+                    <div class="hidden md:block">
+                        <span class="block font-subtitulo font-extrabold text-xl text-azulOceano tracking-wide">COSIENDO ALAS</span>
+                    </div>
+                    <div class="md:hidden">
+                        <span class="block font-subtitulo font-bold text-lg text-azulOceano">COSIENDO ALAS</span>
+                    </div>
+                </div>
+
+                <!-- Lado Derecho -->
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <a href="https://wa.me/525535538561" target="_blank" class="hidden sm:flex px-5 py-2 bg-azulOceano text-white font-subtitulo font-bold rounded-full hover:bg-moradoMedio transition shadow-lg items-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-xl"></i> 
+                        <span>55 3553 8561</span>
+                    </a>
+                    <a href="https://wa.me/525535538561" target="_blank" class="sm:hidden w-10 h-10 bg-azulOceano text-white rounded-full flex items-center justify-center hover:bg-moradoMedio transition shadow-lg active:scale-95">
+                        <i class="fa-brands fa-whatsapp text-xl"></i>
+                    </a>
+
+                    <!-- Botón Hamburguesa -->
+                    <button id="menu-btn" class="text-azulOceano hover:text-verdeEsperanza focus:outline-none ml-2 p-3 active:bg-gray-100 rounded-full transition">
+                        <i class="fa-solid fa-bars text-2xl sm:text-3xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Overlay Oscuro -->
+    <div id="overlay" class="fixed inset-0 bg-black/50 opacity-0 z-[45] hidden transition-opacity duration-300"></div>
+
+    <!-- Menú Lateral Deslizante -->
+    <!-- Nota: Eliminamos el ID conflictivo del CSS y usamos clases directas de Tailwind -->
+    <div id="side-menu" class="fixed top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-2xl z-[55] overflow-y-auto transform translate-x-full transition-transform duration-300">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <span class="font-subtitulo font-bold text-azulOceano text-lg">Menú</span>
+                <button id="close-menu-btn" class="text-gray-400 hover:text-azulOceano transition p-2">
+                    <i class="fa-solid fa-xmark text-3xl"></i>
+                </button>
+            </div>
+
+            <!-- Contenido del Menú -->
+            <nav class="space-y-8 pb-20">
+                <!-- Grupo 1 -->
+                <div>
+                    <h3 class="font-titulo1 text-azulOceano text-lg italic border-b border-doradoSuave pb-1 mb-3">Nuestra Organización</h3>
+                    <ul class="space-y-4 pl-2">
+                        <li><a href="#quienes-somos" class="block font-subtitulo font-semibold text-grisAntracita hover:text-verdeEsperanza transition py-1">¿Quiénes somos?</a></li>
+                        <!-- Cultura movido a Comunidad -->
+                        <li><a href="#directorio" class="block font-subtitulo font-semibold text-grisAntracita hover:text-verdeEsperanza transition py-1">Directorio</a></li>
+                    </ul>
+                </div>
+
+                <!-- Grupo 2 -->
+                <div>
+                    <h3 class="font-titulo1 text-azulOceano text-lg italic border-b border-doradoSuave pb-1 mb-3">Servicios y Ayuda</h3>
+                    <ul class="space-y-4 pl-2">
+                        <li><a href="#servicios" class="block font-subtitulo font-semibold text-grisAntracita hover:text-verdeEsperanza transition py-1">Servicios</a></li>
+                        <li><a href="#que-hacer" class="block font-subtitulo font-bold text-verdeEsperanza hover:text-azulOceano transition py-1"><i class="fa-solid fa-circle-exclamation mr-2"></i>¿Qué hacer?</a></li>
+                    </ul>
+                </div>
+
+                <!-- Grupo 3 -->
+                <div>
+                    <h3 class="font-titulo1 text-azulOceano text-lg italic border-b border-doradoSuave pb-1 mb-3">Recursos</h3>
+                    <ul class="space-y-4 pl-2">
+                        <li><a href="#orientacion" class="block font-subtitulo font-semibold text-grisAntracita hover:text-verdeEsperanza transition py-1">Orientación jurídica explicada</a></li>
+                        <li><a href="#material-victimas" class="block font-subtitulo font-semibold text-grisAntracita hover:text-verdeEsperanza transition py-1">Material para víctimas</a></li>
+                        <li><a href="#material-acompanantes" class="block font-subtitulo font-semibold text-grisAntracita hover:text-verdeEsperanza transition py-1">Material para acompañantes</a></li>
+                    </ul>
+                </div>
+
+                <!-- Grupo 4 -->
+                <div>
+                    <h3 class="font-titulo1 text-azulOceano text-lg italic border-b border-doradoSuave pb-1 mb-3">Comunidad</h3>
+                    <ul class="space-y-4 pl-2">
+                        <!-- Cultura añadido aquí -->
+                        <li><a href="#cultura" class="block font-subtitulo font-semibold text-grisAntracita hover:text-verdeEsperanza transition py-1">Cultura</a></li>
+                        <li><a href="#blog" class="block font-subtitulo font-semibold text-grisAntracita hover:text-verdeEsperanza transition py-1">Blog</a></li>
+                    </ul>
+                </div>
+
+                <!-- Botón Contacto -->
+                <div class="pt-6">
+                    <a href="mailto:cosiendo.tus.alas@gmail.com" class="block w-full py-4 bg-gray-100 text-center text-grisAntracita font-bold rounded-lg hover:bg-azulOceano hover:text-white transition shadow-sm active:bg-gray-200">
+                        Escríbenos un correo
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <header id="inicio" class="hero-gradient relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden min-h-[85vh] flex items-center">
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 lg:w-96 lg:h-96 bg-turquesaClaro opacity-20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-48 h-48 lg:w-80 lg:h-80 bg-doradoSuave opacity-20 rounded-full blur-3xl"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center flex-col-reverse">
+                <div class="text-center lg:text-left order-2 lg:order-1">
+                    <h1 class="font-titulo1 font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-6 drop-shadow-sm">
+                        Reparamos heridas, <br>
+                        <span class="text-doradoSuave italic">reconstruimos vuelos.</span>
+                    </h1>
+                    <p class="font-subtitulo text-lg sm:text-xl text-gray-100 mb-8 max-w-2xl mx-auto lg:mx-0 font-medium leading-relaxed">
+                        Atención integral a víctimas de violencia sexual con perspectiva humana, defensa legal experta y un enfoque de sanación real.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <a href="https://wa.me/525535538561" target="_blank" class="px-8 py-4 bg-doradoSuave text-grisAntracita font-subtitulo font-bold rounded-lg hover:bg-white hover:text-azulOceano transition shadow-lg border-2 border-transparent hover:border-doradoSuave text-center active:scale-95">
+                            Necesito Ayuda
+                        </a>
+                        <a href="#servicios" class="px-8 py-4 bg-transparent border-2 border-white text-white font-subtitulo font-bold rounded-lg hover:bg-white hover:text-azulOceano transition text-center active:bg-white/10">
+                            Conocer Servicios
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center order-1 lg:order-2 mb-8 lg:mb-0">
+                    <div id="hero-blob" class="relative w-48 h-48 sm:w-64 sm:h-64 lg:w-96 lg:h-96 blob-shape bg-white flex items-center justify-center shadow-2xl border-4 border-doradoSuave border-opacity-50 transition-all duration-700">
+                        <img src="home.svg" alt="Colibrí Cosiendo Alas" class="w-32 sm:w-40 lg:w-72 h-auto drop-shadow-md hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/400x400?text=Colibrí';">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-0 w-full leading-none z-10">
+            <svg class="block w-full h-12 sm:h-24" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" fill="#f8f6fb"></path>
+            </svg>
+        </div>
+    </header>
+
+    <!-- Sección Misión/Visión -->
+    <section id="quienes-somos" class="py-20 bg-fondoPagina">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-verdeEsperanza font-subtitulo font-bold tracking-wider uppercase text-sm">Nuestra Esencia</span>
+                <h2 class="font-subtitulo font-extrabold text-3xl md:text-4xl text-azulOceano mt-2">Coser lo roto para volver a volar</h2>
+                <div class="w-24 h-1 bg-doradoSuave mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-sm hover-lift border-t-4 border-azulOceano">
+                    <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mb-6 text-azulOceano">
+                        <i class="fa-solid fa-hands-holding-circle text-2xl"></i>
+                    </div>
+                    <h3 class="font-subtitulo font-bold text-xl mb-3 text-grisAntracita">Nuestra Misión</h3>
+                    <p class="font-texto text-gray-600 text-lg leading-relaxed">
+                        Prevenir la violencia sexual y atender integralmente a las víctimas, ofreciendo asesoría legal, psicológica y reparación del daño sin revictimización.
+                    </p>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-sm hover-lift border-t-4 border-verdeEsperanza">
+                    <div class="w-14 h-14 bg-cyan-50 rounded-full flex items-center justify-center mb-6 text-verdeEsperanza">
+                        <i class="fa-solid fa-dove text-2xl"></i>
+                    </div>
+                    <h3 class="font-subtitulo font-bold text-xl mb-3 text-grisAntracita">Nuestra Visión</h3>
+                    <p class="font-texto text-gray-600 text-lg leading-relaxed">
+                        Ser referentes en México cerrando brechas institucionales, garantizando justicia y acompañamiento humano para reconstruir vidas.
+                    </p>
+                </div>
+                <div id="cultura" class="bg-white p-8 rounded-xl shadow-sm hover-lift border-t-4 border-doradoSuave">
+                    <div class="w-14 h-14 bg-yellow-50 rounded-full flex items-center justify-center mb-6 text-doradoSuave">
+                        <i class="fa-solid fa-scale-balanced text-2xl"></i>
+                    </div>
+                    <h3 class="font-subtitulo font-bold text-xl mb-3 text-grisAntracita">Nuestra Cultura</h3>
+                    <ul class="font-texto text-gray-600 text-lg space-y-2">
+                        <li><i class="fa-solid fa-check text-verdeEsperanza mr-2"></i>Honestidad Transparente</li>
+                        <li><i class="fa-solid fa-check text-verdeEsperanza mr-2"></i>Empatía Radical</li>
+                        <li><i class="fa-solid fa-check text-verdeEsperanza mr-2"></i>Claridad Institucional</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección Fundadora -->
+    <section id="directorio" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-azulOceano rounded-3xl overflow-hidden shadow-2xl">
+                <div class="grid grid-cols-1 lg:grid-cols-2">
+                    <div class="p-10 md:p-16 flex flex-col justify-center">
+                        <h3 class="font-titulo1 text-doradoSuave text-2xl mb-2 italic">Directorio y Fundadora</h3>
+                        <h2 class="font-subtitulo font-extrabold text-3xl md:text-4xl text-white mb-6">Expertise Legal + Vivencia Transformada</h2>
+                        <p class="font-texto text-gray-200 text-lg mb-6 leading-relaxed">
+                            Cosiendo Alas está liderada por una Licenciada en Derecho (UAM) certificada por la SCJN y CNDH, cuya experiencia personal garantiza que aquí se entiende el dolor desde la piel.
+                        </p>
+                        <div class="border-l-4 border-verdeEsperanza pl-6 mb-8">
+                            <p class="font-titulo1 text-white text-xl italic leading-relaxed">
+                                "Entendemos el sistema desde adentro y el dolor desde la piel."
+                            </p>
+                        </div>
+                    </div>
+                    <div class="relative h-64 lg:h-auto bg-gray-200">
+                        <img src="https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Manos entrelazadas apoyo" class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-60">
+                        <div class="absolute inset-0 bg-gradient-to-t from-azulOceano to-transparent lg:bg-gradient-to-l"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección Servicios y Recursos -->
+    <section id="servicios" class="py-20 bg-fondoPagina">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-azulOceano font-subtitulo font-bold tracking-wider uppercase text-sm">Nuestro Trabajo y Recursos</span>
+                <h2 class="font-subtitulo font-extrabold text-3xl md:text-4xl text-grisAntracita mt-2">Atención Integral</h2>
+                <div class="stitch-line mt-6 w-full max-w-md mx-auto opacity-50"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div>
+                    <h3 class="font-subtitulo font-bold text-2xl text-azulOceano mb-6">Servicios y Orientación</h3>
+                    <div class="space-y-4">
+                        <div id="que-hacer" class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-verdeEsperanza cursor-pointer hover:bg-green-50 transition">
+                            <h4 class="font-subtitulo font-bold text-grisAntracita text-lg"><i class="fa-solid fa-circle-exclamation text-verdeEsperanza mr-2"></i>¿Qué hacer?</h4>
+                            <p class="font-texto text-gray-600 text-lg mt-2">Guía paso a paso sobre cómo actuar inmediatamente después de una agresión.</p>
+                        </div>
+                        <div id="orientacion" class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-verdeEsperanza cursor-pointer hover:bg-green-50 transition">
+                            <h4 class="font-subtitulo font-bold text-grisAntracita text-lg">Orientación Jurídica Explicada</h4>
+                            <p class="font-texto text-gray-600 text-lg mt-2">Traducimos el lenguaje legal a términos simples para que entiendas tus derechos.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-subtitulo font-bold text-2xl text-azulOceano mb-6">Materiales de Apoyo</h3>
+                    <div class="space-y-4">
+                        <div id="material-victimas" class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-azulOceano cursor-pointer hover:bg-blue-50 transition">
+                            <h4 class="font-subtitulo font-bold text-grisAntracita text-lg">Material para Víctimas</h4>
+                            <p class="font-texto text-gray-600 text-lg mt-2">Lecturas, ejercicios y guías de autocuidado para tu proceso de sanación.</p>
+                        </div>
+                        <div id="material-acompanantes" class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-azulOceano cursor-pointer hover:bg-blue-50 transition">
+                            <h4 class="font-subtitulo font-bold text-grisAntracita text-lg">Material para Acompañantes</h4>
+                            <p class="font-texto text-gray-600 text-lg mt-2">Herramientas para familiares y amigos: cómo apoyar sin invadir ni juzgar.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contacto" class="bg-grisAntracita text-white pt-16 pb-24 lg:pb-8 border-t-4 border-doradoSuave">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+                <div class="col-span-1 lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-4">
+                         <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                             <img src="home.svg" alt="Icon" class="w-8 h-8 object-contain" onerror="this.src='https://placehold.co/100x100?text=CA';">
+                         </div>
+                        <h3 class="font-subtitulo font-bold text-2xl">Cosiendo Alas A.C.</h3>
+                    </div>
+                    <p class="font-texto text-lavandaSuave text-lg mb-6 max-w-md">
+                        Organización dedicada a la prevención de la violencia sexual y la atención integral de víctimas.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-12 h-12 rounded-full bg-azulOceano flex items-center justify-center hover:bg-verdeEsperanza transition"><i class="fa-brands fa-facebook-f text-xl"></i></a>
+                        <a href="#" class="w-12 h-12 rounded-full bg-azulOceano flex items-center justify-center hover:bg-verdeEsperanza transition"><i class="fa-brands fa-instagram text-xl"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-titulo1 text-xl italic mb-4 text-doradoSuave">Contacto</h4>
+                    <ul class="space-y-3 font-texto text-lavandaSuave text-lg">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-envelope mt-1 text-verdeEsperanza"></i>
+                            <a href="mailto:cosiendo.tus.alas@gmail.com" class="hover:text-white transition break-all">cosiendo.tus.alas@gmail.com</a>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-brands fa-whatsapp mt-1 text-verdeEsperanza"></i>
+                            <a href="https://wa.me/525535538561" target="_blank" class="hover:text-white transition">55 3553 8561</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-moradoMedio border-opacity-30 pt-8 text-center text-lavandaSuave text-sm font-texto">
+                <p>&copy; 2024 Cosiendo Alas A.C. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        const menuBtn = document.getElementById('menu-btn');
+        const closeMenuBtn = document.getElementById('close-menu-btn');
+        const sideMenu = document.getElementById('side-menu');
+        const overlay = document.getElementById('overlay');
+        const menuLinks = document.querySelectorAll('#side-menu a');
+        
+        const navbar = document.getElementById('main-navbar');
+        const navLogo = document.getElementById('nav-logo');
+        const heroBlob = document.getElementById('hero-blob');
+
+        function toggleMenu() {
+            const isOpen = !sideMenu.classList.contains('translate-x-full');
+            
+            if (isOpen) {
+                // CERRAR
+                sideMenu.classList.add('translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+                document.body.style.overflow = '';
+            } else {
+                // ABRIR
+                overlay.classList.remove('hidden');
+                void overlay.offsetWidth; // Forzar reflow
+                overlay.classList.remove('opacity-0');
+                sideMenu.classList.remove('translate-x-full');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function harmonizeGraphics() {
+            if (window.scrollY > 50) {
+                navbar.classList.add('nav-compact');
+                navLogo.classList.add('logo-compact');
+            } else {
+                navbar.classList.remove('nav-compact');
+                navLogo.classList.remove('logo-compact');
+            }
+        }
+
+        menuBtn.addEventListener('click', toggleMenu);
+        closeMenuBtn.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+
+        menuLinks.forEach(link => {
+            link.addEventListener('click', toggleMenu);
+        });
+
+        window.addEventListener('scroll', harmonizeGraphics);
+        window.addEventListener('resize', harmonizeGraphics);
+
+        harmonizeGraphics();
+    </script>
+</body>
+</html>

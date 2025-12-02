@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | Cosiendo Alas A.C.</title>
+    
+    <!-- Fuentes Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Configuración de Colores -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        azulOceano: '#653a82',     
+                        verdeEsperanza: '#42c3d9', 
+                        doradoSuave: '#fcc352',    
+                        grisAntracita: '#2b1045',  
+                        moradoMedio: '#8e62b1',
+                        azulCielo: '#53a0cc',
+                        turquesaClaro: '#5dcad4',
+                        lavandaSuave: '#afb0de',
+                        fondoPagina: '#f8f6fb', 
+                    },
+                    fontFamily: {
+                        titulo1: ['Playfair Display', 'serif'],
+                        subtitulo: ['Montserrat', 'sans-serif'],
+                        texto: ['Source Sans Pro', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .hero-gradient { background: linear-gradient(135deg, #2b1045 0%, #653a82 50%, #42c3d9 100%); }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="text-grisAntracita font-texto antialiased bg-fondoPagina overflow-x-hidden flex flex-col min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md fixed w-full z-50 transition-all duration-300 h-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+            <div class="flex justify-between h-full items-center">
+                <!-- Logo -->
+                <a href="index.html" class="flex-shrink-0 flex items-center gap-3 group">
+                    <img class="h-10 w-10 object-contain transition-transform group-hover:scale-110" src="home.svg" alt="Logo" onerror="this.src='https://placehold.co/100x100?text=CA'; this.style.borderRadius='50%'">
+                    <div>
+                        <span class="block font-subtitulo font-extrabold text-xl text-azulOceano tracking-wide">COSIENDO ALAS</span>
+                        <span class="block text-xs font-bold text-verdeEsperanza tracking-widest uppercase">Blog & Comunidad</span>
+                    </div>
+                </a>
+
+                <!-- Botón Volver -->
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="px-4 py-2 border-2 border-azulOceano text-azulOceano font-bold rounded-full hover:bg-azulOceano hover:text-white transition text-sm">
+                        <i class="fa-solid fa-arrow-left mr-2"></i> Volver al Inicio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header del Blog -->
+    <header class="hero-gradient pt-32 pb-16 relative overflow-hidden">
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-turquesaClaro opacity-20 rounded-full blur-3xl"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <h1 class="font-titulo1 font-bold text-4xl sm:text-5xl text-white mb-4">Voces de Vuelo</h1>
+            <p class="font-subtitulo text-lg text-gray-100 max-w-2xl mx-auto">
+                Un espacio de reflexión, aprendizaje y novedades. Tu voz importa, compártela con nosotros.
+            </p>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        
+        <!-- PANEL DE ADMINISTRACIÓN (SOLO VISIBLE PARA ADMIN) -->
+        <div id="admin-panel" class="hidden mb-16 bg-white p-8 rounded-xl shadow-lg border-l-4 border-doradoSuave fade-in ring-2 ring-doradoSuave ring-offset-4">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+                <h2 class="font-subtitulo font-bold text-2xl text-azulOceano"><i class="fa-solid fa-gavel mr-2"></i>Panel de Moderación</h2>
+                <button onclick="logoutAdmin()" class="px-3 py-1 bg-red-100 text-red-600 rounded-md text-sm font-bold hover:bg-red-200 transition">Cerrar Sesión</button>
+            </div>
+            
+            <p class="text-gray-600 mb-4">Aquí aparecen las entradas enviadas por la comunidad. Revísalas antes de hacerlas públicas.</p>
+
+            <!-- Lista de Pendientes -->
+            <div id="pending-grid" class="space-y-4">
+                <!-- Se inyectan aquí las entradas pendientes -->
+                <p class="text-center text-gray-400 italic py-4">No hay entradas pendientes de revisión.</p>
+            </div>
+        </div>
+
+        <!-- FORMULARIO PÚBLICO DE ESCRITURA -->
+        <section class="mb-20 bg-white p-8 rounded-xl shadow-md border border-gray-100">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-azulOceano rounded-full flex items-center justify-center text-white">
+                    <i class="fa-solid fa-pen-nib"></i>
+                </div>
+                <h2 class="font-subtitulo font-bold text-2xl text-grisAntracita">Comparte tu Experiencia</h2>
+            </div>
+            <p class="text-gray-600 mb-6 text-sm">
+                Tu historia puede inspirar a otros. Escribe tu entrada a continuación. 
+                <span class="font-bold text-azulOceano">Nota:</span> Tu publicación pasará por un proceso de revisión antes de aparecer en el blog público.
+            </p>
+
+            <form id="post-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-grisAntracita mb-1">Título de tu historia</label>
+                    <input type="text" id="post-title" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verdeEsperanza focus:border-transparent outline-none bg-gray-50" placeholder="Un título...">
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-grisAntracita mb-1">Nombre o Alias (Opcional)</label>
+                        <input type="text" id="post-author" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verdeEsperanza outline-none bg-gray-50" placeholder="Ej. Anónimo, María G.">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-grisAntracita mb-1">Categoría</label>
+                        <select id="post-category" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verdeEsperanza outline-none bg-gray-50">
+                            <option value="Reflexión">Reflexión / Testimonio</option>
+                            <option value="Noticias">Noticias</option>
+                            <option value="Legal">Tema Legal</option>
+                            <option value="Eventos">Eventos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-grisAntracita mb-1">Tu Mensaje</label>
+                    <textarea id="post-content" required rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verdeEsperanza outline-none bg-gray-50" placeholder="Escribe aquí tu contenido..."></textarea>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="px-6 py-3 bg-azulOceano text-white font-bold rounded-lg hover:bg-moradoMedio transition shadow-md flex items-center gap-2">
+                        <i class="fa-regular fa-paper-plane"></i> Enviar a Revisión
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- SEPARADOR -->
+        <div class="flex items-center gap-4 mb-8">
+            <h2 class="font-subtitulo font-bold text-3xl text-grisAntracita">Últimas Publicaciones</h2>
+            <div class="h-1 bg-gray-200 flex-grow rounded-full"></div>
+        </div>
+
+        <!-- LISTA DE ENTRADAS (Solo Aprobadas) -->
+        <div id="loading-indicator" class="text-center py-12">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-azulOceano"></i>
+            <p class="mt-4 text-gray-500 font-subtitulo">Cargando historias...</p>
+        </div>
+
+        <div id="blog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Las entradas aprobadas se inyectarán aquí mediante JS -->
+        </div>
+
+        <!-- Mensaje si no hay entradas -->
+        <div id="no-posts-message" class="hidden text-center py-12 bg-white rounded-xl shadow-sm border border-dashed border-gray-300">
+            <i class="fa-solid fa-book-open-reader text-4xl text-lavandaSuave mb-4"></i>
+            <h3 class="font-subtitulo text-xl text-gray-500">Aún no hay entradas públicas.</h3>
+            <p class="text-gray-400">¡Sé el primero en enviar tu historia!</p>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-grisAntracita text-white pt-12 pb-8 border-t-4 border-doradoSuave mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-3">
+                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                         <img src="home.svg" alt="Icon" class="w-8 h-8 object-contain" onerror="this.src='https://placehold.co/100x100?text=CA';">
+                     </div>
+                    <p class="font-subtitulo font-bold text-lg">Cosiendo Alas A.C.</p>
+                </div>
+                
+                <div class="text-sm text-lavandaSuave flex gap-4 items-center">
+                    <a href="index.html" class="hover:text-verdeEsperanza transition">Inicio</a>
+                    <span class="text-gray-600">|</span>
+                    <!-- Botón secreto para admin -->
+                    <button onclick="toggleAdminLogin()" class="hover:text-white text-gray-500 transition cursor-pointer text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-lock"></i> Moderación
+                    </button>
+                </div>
+            </div>
+            <div class="text-center mt-8 text-xs text-gray-500">
+                &copy; 2024 Cosiendo Alas A.C. Todos los derechos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Lógica de Firebase y Blog -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, deleteDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        signInAnonymously(auth).catch(console.error);
+
+        const postsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'blog_posts');
+
+        // ELEMENTOS DOM
+        const blogGrid = document.getElementById('blog-grid');
+        const pendingGrid = document.getElementById('pending-grid');
+        const adminPanel = document.getElementById('admin-panel');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const noPostsMessage = document.getElementById('no-posts-message');
+        const postForm = document.getElementById('post-form');
+
+        // ESCUCHAR POSTS EN TIEMPO REAL (TODOS)
+        const q = query(postsCollectionRef);
+
+        onSnapshot(q, (snapshot) => {
+            loadingIndicator.style.display = 'none';
+            blogGrid.innerHTML = '';
+            pendingGrid.innerHTML = '';
+            
+            const allPosts = [];
+            snapshot.forEach(doc => {
+                allPosts.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Ordenar por fecha descendente
+            allPosts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+            // Filtrar posts
+            const approvedPosts = allPosts.filter(p => p.status === 'approved');
+            const pendingPosts = allPosts.filter(p => p.status === 'pending');
+
+            // Renderizar Públicos
+            if (approvedPosts.length === 0) {
+                noPostsMessage.classList.remove('hidden');
+            } else {
+                noPostsMessage.classList.add('hidden');
+                approvedPosts.forEach(post => renderPublicPost(post));
+            }
+
+            // Renderizar Pendientes (Solo visible si el panel admin está abierto)
+            if (pendingPosts.length > 0) {
+                pendingPosts.forEach(post => renderPendingPost(post));
+            } else {
+                pendingGrid.innerHTML = '<p class="text-center text-gray-400 italic py-4 bg-gray-50 rounded-lg">No hay entradas pendientes de revisión.</p>';
+            }
+        });
+
+        // RENDERIZAR POST PÚBLICO
+        function renderPublicPost(post) {
+            const date = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Reciente';
+            
+            let catColor = 'bg-azulOceano';
+            if(post.category === 'Legal') catColor = 'bg-grisAntracita';
+            if(post.category === 'Reflexión') catColor = 'bg-verdeEsperanza';
+            if(post.category === 'Eventos') catColor = 'bg-doradoSuave text-grisAntracita';
+
+            // Si es admin, mostrar botón de borrar aunque sea público
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            const deleteBtn = isAdmin ? `
+                <button onclick="window.deletePost('${post.id}')" class="absolute top-2 right-2 bg-red-500/80 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600 transition z-10" title="Borrar entrada">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+            ` : '';
+
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col fade-in h-full';
+            card.innerHTML = `
+                <div class="relative">
+                    ${deleteBtn}
+                    <div class="h-3 bg-gradient-to-r from-azulOceano to-verdeEsperanza"></div>
+                </div>
+                <div class="p-6 flex-grow flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="${catColor} text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">${post.category || 'General'}</span>
+                        <span class="text-xs text-gray-400 font-texto"><i class="fa-regular fa-clock mr-1"></i>${date}</span>
+                    </div>
+                    <h3 class="font-subtitulo font-bold text-xl text-grisAntracita mb-3 leading-snug">${post.title}</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4 flex-grow whitespace-pre-line line-clamp-3">${post.content}</p>
+                    <div class="pt-4 border-t border-gray-100 flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500"><i class="fa-solid fa-user"></i></div>
+                        <span class="text-xs font-bold text-azulOceano">${post.author || 'Anónimo'}</span>
+                    </div>
+                </div>
+            `;
+            blogGrid.appendChild(card);
+        }
+
+        // RENDERIZAR POST PENDIENTE (ADMIN)
+        function renderPendingPost(post) {
+            const card = document.createElement('div');
+            card.className = 'bg-white p-4 rounded-lg border-l-4 border-orange-400 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 fade-in';
+            card.innerHTML = `
+                <div class="flex-grow">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded">Pendiente</span>
+                        <span class="text-xs text-gray-500">${post.category}</span>
+                    </div>
+                    <h4 class="font-bold text-lg text-grisAntracita">${post.title}</h4>
+                    <p class="text-sm text-gray-600 line-clamp-2">${post.content}</p>
+                    <p class="text-xs text-azulOceano mt-1">Por: ${post.author || 'Anónimo'}</p>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button onclick="window.approvePost('${post.id}')" class="flex-1 sm:flex-none px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition text-sm font-bold">
+                        <i class="fa-solid fa-check mr-1"></i> Aprobar
+                    </button>
+                    <button onclick="window.deletePost('${post.id}')" class="flex-1 sm:flex-none px-4 py-2 bg-red-100 text-red-500 rounded hover:bg-red-200 transition text-sm font-bold">
+                        <i class="fa-solid fa-xmark mr-1"></i> Rechazar
+                    </button>
+                </div>
+            `;
+            pendingGrid.appendChild(card);
+        }
+
+        // ENVIAR POST (SIEMPRE PENDIENTE)
+        postForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = postForm.querySelector('button[type="submit"]');
+            const originalHTML = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando...';
+
+            try {
+                await addDoc(postsCollectionRef, {
+                    title: document.getElementById('post-title').value,
+                    author: document.getElementById('post-author').value,
+                    category: document.getElementById('post-category').value,
+                    content: document.getElementById('post-content').value,
+                    status: 'pending', // <--- CLAVE: Se guarda como pendiente
+                    createdAt: serverTimestamp()
+                });
+                
+                postForm.reset();
+                alert('¡Gracias! Tu entrada ha sido enviada a revisión. Un moderador la publicará pronto.');
+            } catch (error) {
+                console.error("Error:", error);
+                alert('Error al enviar. Intenta de nuevo.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHTML;
+            }
+        });
+
+        // FUNCIONES ADMIN GLOBALES
+        window.approvePost = async (id) => {
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'blog_posts', id);
+                await updateDoc(docRef, { status: 'approved' });
+            } catch (e) {
+                alert('Error al aprobar: ' + e.message);
+            }
+        };
+
+        window.deletePost = async (id) => {
+            if(confirm('¿Confirmas que deseas eliminar esta entrada?')) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'blog_posts', id));
+                } catch (e) {
+                    alert('Error al eliminar: ' + e.message);
+                }
+            }
+        };
+
+        window.toggleAdminLogin = () => {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            if (isAdmin) {
+                adminPanel.classList.remove('hidden');
+                adminPanel.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                const password = prompt("Contraseña de Moderador:");
+                if (password === "admin123") { 
+                    localStorage.setItem('isAdmin', 'true');
+                    location.reload(); 
+                } else if (password !== null) {
+                    alert("Contraseña incorrecta");
+                }
+            }
+        };
+
+        window.logoutAdmin = () => {
+            localStorage.removeItem('isAdmin');
+            location.reload();
+        };
+
+        // Mostrar panel si ya está logueado
+        if (localStorage.getItem('isAdmin') === 'true') {
+            adminPanel.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
